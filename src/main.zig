@@ -23,7 +23,7 @@ pub fn main() u8 {
         var name = getProcessName(allocator, process_id) orelse continue;
         defer allocator.free(name);
 
-        if (args.contains(name)) {
+        if (args.contains(toUpper(name))) {
             return FOUND;
         }
     }
@@ -41,7 +41,7 @@ fn getArgs(allocator: *Allocator) ?StringHashMap {
 
     while (iterator.next(allocator)) |arg| {
         var key = arg catch unreachable;
-        var entry = args.getOrPut(key) catch unreachable;
+        var entry = args.getOrPut(toUpper(key)) catch unreachable;
         if (entry.found_existing) {
             allocator.free(key);
         }
@@ -62,6 +62,13 @@ fn deinitArgs(args: *StringHashMap) void {
         allocator.free(key.*);
     }
     args.deinit();
+}
+
+fn toUpper(str: []u8) []u8 {
+    for (str) |*char| {
+        char.* = std.ascii.toUpper(char.*);
+    }
+    return str;
 }
 
 fn getProcesses(allocator: *Allocator) ?[]win32.DWORD {
@@ -103,7 +110,7 @@ fn getProcessName(allocator: *Allocator, process_id: win32.DWORD) ?[]u8 {
     } else {
 
         // Starting with a small buffer and grow as needed
-        var max_process_name: usize = 64;
+        var max_process_name: usize = 32;
         var name_buffer = allocator.allocSentinel(win32.CHAR, max_process_name, 0) catch unreachable;
         errdefer allocator.free(name_buffer);
 
