@@ -1,3 +1,8 @@
+/// IsRunning is a Windows command line utility designed to check if some processes are running or not
+/// It's main goal is to be used as healthy-check probe on containers
+/// Usage:
+/// IsRunning.exe traefik.exe
+
 const std = @import("std");
 const win32 = @import("./win32.zig");
 
@@ -99,7 +104,9 @@ fn getProcesses(allocator: *Allocator) ?[]win32.DWORD {
 }
 
 fn getProcessName(allocator: *Allocator, process_id: win32.DWORD) ?[]u8 {
-    var process_handle = win32.OpenProcess(win32.DESIRED_ACCESS, win32.FALSE, process_id) orelse return null;
+
+    const DESIRED_ACCESS = win32.PROCESS_ACCESS_RIGHTS.QUERY_INFORMATION | win32.PROCESS_ACCESS_RIGHTS.VM_READ;
+    var process_handle = win32.OpenProcess(DESIRED_ACCESS, win32.FALSE, process_id) orelse return null;
 
     var module: [1]win32.HMODULE = undefined;
     var len: win32.DWORD = undefined;

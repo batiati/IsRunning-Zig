@@ -21,8 +21,6 @@ pub extern "kernel32" fn OpenProcess(
     dwProcessId: DWORD,
 ) callconv(os.WINAPI) ?HANDLE;
 
-pub const DESIRED_ACCESS = PROCESS_ACCESS_RIGHTS.QUERY_INFORMATION | PROCESS_ACCESS_RIGHTS.VM_READ;
-
 pub const PROCESS_ACCESS_RIGHTS = struct {
     pub const TERMINATE: DWORD = 1;
     pub const CREATE_THREAD: DWORD = 2;
