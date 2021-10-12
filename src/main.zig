@@ -23,8 +23,9 @@ pub fn main() u8 {
         var name = getProcessName(allocator, process_id) orelse continue;
         defer allocator.free(name);
 
-        if (args.contains(toUpper(name))) {
-            return FOUND;
+        if (args.fetchRemove(toUpper(name))) |entry| {
+            allocator.free(entry.key);
+            if (args.count() == 0) return FOUND;
         }
     }
 
@@ -110,7 +111,7 @@ fn getProcessName(allocator: *Allocator, process_id: win32.DWORD) ?[]u8 {
     } else {
 
         // Starting with a small buffer and grow as needed
-        var max_process_name: usize = 32;
+        var max_process_name: usize = 64;
         var name_buffer = allocator.allocSentinel(win32.CHAR, max_process_name, 0) catch unreachable;
         errdefer allocator.free(name_buffer);
 
