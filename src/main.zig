@@ -2,7 +2,6 @@
 /// It's main goal is to be used as healthy-check probe on containers
 /// Usage:
 /// IsRunning.exe traefik.exe
-
 const std = @import("std");
 const win32 = @import("./win32.zig");
 
@@ -16,7 +15,7 @@ pub fn main() u8 {
 
     var gpa = GeneralPurposeAllocator{};
     defer _ = gpa.deinit();
-    var allocator = &gpa.allocator;
+    var allocator = gpa.allocator();
 
     var args = getArgs(allocator) orelse return NOT_FOUND;
     defer deinitArgs(&args);
@@ -37,7 +36,7 @@ pub fn main() u8 {
     return NOT_FOUND;
 }
 
-fn getArgs(allocator: *Allocator) ?StringHashMap {
+fn getArgs(allocator: Allocator) ?StringHashMap {
     var iterator = std.process.ArgIterator.init();
     defer iterator.deinit();
 
@@ -45,8 +44,7 @@ fn getArgs(allocator: *Allocator) ?StringHashMap {
 
     var args = StringHashMap.init(allocator);
 
-    while (iterator.next(allocator)) |arg| {
-        var key = arg catch unreachable;
+    while (iterator.next(allocator) catch unreachable) |key| {
         var entry = args.getOrPut(toUpper(key)) catch unreachable;
         if (entry.found_existing) {
             allocator.free(key);
@@ -77,7 +75,7 @@ fn toUpper(str: []u8) []u8 {
     return str;
 }
 
-fn getProcesses(allocator: *Allocator) ?[]win32.DWORD {
+fn getProcesses(allocator: Allocator) ?[]win32.DWORD {
 
     // It's likely to have few processes inside a container
     // Starting with a small buffer and grow as needed
@@ -103,8 +101,7 @@ fn getProcesses(allocator: *Allocator) ?[]win32.DWORD {
     }
 }
 
-fn getProcessName(allocator: *Allocator, process_id: win32.DWORD) ?[]u8 {
-
+fn getProcessName(allocator: Allocator, process_id: win32.DWORD) ?[]u8 {
     const DESIRED_ACCESS = win32.PROCESS_ACCESS_RIGHTS.QUERY_INFORMATION | win32.PROCESS_ACCESS_RIGHTS.VM_READ;
     var process_handle = win32.OpenProcess(DESIRED_ACCESS, win32.FALSE, process_id) orelse return null;
 
