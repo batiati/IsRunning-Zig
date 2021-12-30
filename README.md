@@ -63,7 +63,7 @@ This utility saves a little bit of CPU and memory by removing the overhead of `C
 
 This utility is implemented in [Zig](https://ziglang.org/), just because we needed a native, small, fast, and secure binary to perform such task.
 
-### Further improvements
+### Limitations
 
 - Windows only application
 
